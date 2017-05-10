@@ -37,6 +37,10 @@ function log(msg) {
 	console.log('[%s] %s', time, msg);
 }
 
+/**
+ * Class AWS Rekognition to find seals or mammals from the image
+ * @return q.promise
+ */
 function detectSeals() {
 	var params = {
 		Image: {
@@ -67,20 +71,35 @@ function detectSeals() {
 	.catch(console.log.bind(console));
 }
 
+/**
+ * Checks for hour limits and then takes a screenshot of the stream with ffmpeg
+ * @return q.promise
+ */
 function getStreamScreenshot() {
+	// Get current hour
 	var hour = parseInt(moment().format('H'), 10);
+
+	// If hour is not within the limits, just sleep more
 	if (hour < MIN_HOUR || hour > MAX_HOUR) {
 		sealSeen = false;
 		return sleepForAWhile();
 	}
 
+	// Delete previous image if it exists
 	if (fs.existsSync(IMAGENAME)) {
 		fs.unlinkSync(IMAGENAME);
 	}
+
+	// Call ffmpeg to make a png image
 	return q.nfcall(exec, 'ffmpeg -i "' + STREAM + '" -f image2  -vframes 1 ' + IMAGENAME)
 	.then(detectSeals);
 }
 
+/**
+ * Tweets about norppa
+ * @param  float confidence		AWS confidence
+ * @return q.promise
+ */
 function tweetNorppaIsLive(confidence) {
 	confidence = Math.round(confidence * 10) / 10;
 	var message = messages[currentMessage] + '(Varmuus: ' + confidence + '%)';
@@ -104,6 +123,11 @@ function tweetNorppaIsLive(confidence) {
 	});
 }
 
+/**
+ * Sleeps for time period specified in SLEEP_TIME or SLEEP_TIME_AFTER_SEAL if
+ * seal was recently detected. After that calls getStreamScreenshot()
+ * @return void
+ */
 function sleepForAWhile() {
 	var defer = q.defer();
 	if (sealSeen) {
@@ -116,4 +140,5 @@ function sleepForAWhile() {
 	.then(getStreamScreenshot);
 }
 
+// Lights on, let's go
 getStreamScreenshot();
