@@ -1,0 +1,15 @@
+{
+  "name": "Norppabot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Risto \"Dilaz\" Viitanen",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.49.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "moment": "^2.18.1",
+    "q": "^1.5.0",
+    "shuffle-array": "^1.0.1",
+    "twitter": "^1.7.0"
+  }
+}
