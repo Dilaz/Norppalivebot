@@ -44,26 +44,34 @@ function log(msg) {
 function detectSeals() {
 	var params = {
 		Image: {
+			// Read file to bytestream
 			Bytes: fs.readFileSync(IMAGENAME),
 		},
+		// Set minimum confidence
 		MinConfidence: DETECT_CONFIDENCE,
 	};
 
-	q.ninvoke(rekognition, 'detectLabels', params)
+	// Send the request
+	return q.ninvoke(rekognition, 'detectLabels', params)
 	.then(function(data) {
+		// Go through the found labels
 		for (var i in data.Labels) {
 			var label = data.Labels[i];
+			// If label matches given words, tweet it!
 			if (DETECTABLE.indexOf(label.Name) !== -1) {
 				log(label.Name + ' detected with confidence: ' + label.Confidence);
+				// Only tweet if this is first time we've seen this seal
 				if (!sealSeen) {
 					sealSeen = true;
 					return tweetNorppaIsLive(label.Confidence);
 				}
 
+				// If we've seen this already, just wait for a while
 				return sleepForAWhile();
 			}
 		}
 
+		// No seals detected, sleep some more
 		log('No seals detected');
 		sealSeen = false;
 		return sleepForAWhile();
@@ -115,8 +123,8 @@ function tweetNorppaIsLive(confidence) {
 		return client.post('statuses/update', {status: message, media_ids: media.media_id_string})
 	})
 	.then(function () {
-		currentMessage++;
 		log('Tweeted:', message);
+		currentMessage = (currentMessage + 1) % messages.length;
 	})
 	.then(function() {
 		sleepForAWhile();
