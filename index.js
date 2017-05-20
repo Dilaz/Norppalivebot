@@ -8,17 +8,24 @@ AWS.config.loadFromPath('./config.json');
 var rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
 var Twitter = require('twitter');
 
-const MIN_HOUR = 7;
-const MAX_HOUR = 21;
-const SLEEP_TIME = 60 * 1000;
-const SLEEP_TIME_AFTER_SEAL = 10 * 60 * 1000;
+const MIN_HOUR = 5;
+const MAX_HOUR = 22;
+const SLEEP_TIME = 2 * 60 * 1000;
+const SLEEP_TIME_AFTER_SEAL = 30 * 60 * 1000;
 const IMAGENAME = 'norppa.png';
 const STREAM = 'https://ams3-automatic-a04si.pukkistream.net:1936/abr/norppalive/live/norppalive_720p/chunks.m3u8';
 const DETECTABLE = [
 	'Seal',
+	'Sea Lion',
+];
+const ALT_DETECTABLE = [
+	'Animal',
+	'Bird',
+	'Duck',
+	'Goose',
 	'Mammal',
 ];
-const DETECT_CONFIDENCE = 50;
+const DETECT_CONFIDENCE = 80;
 
 var sealSeen = false;
 var messages = require('./messages.json');
@@ -48,7 +55,7 @@ function detectSeals() {
 			Bytes: fs.readFileSync(IMAGENAME),
 		},
 		// Set minimum confidence
-		MinConfidence: DETECT_CONFIDENCE,
+		MinConfidence: 35,
 	};
 
 	// Send the request
@@ -60,14 +67,22 @@ function detectSeals() {
 			// If label matches given words, tweet it!
 			if (DETECTABLE.indexOf(label.Name) !== -1) {
 				log(label.Name + ' detected with confidence: ' + label.Confidence);
+				// Save the image
+				saveFile(data.Labels);
+				console.log(data.Labels);
+
 				// Only tweet if this is first time we've seen this seal
-				if (!sealSeen) {
+				if (!sealSeen && label.Confidence >= DETECT_CONFIDENCE) {
 					sealSeen = true;
 					return tweetNorppaIsLive(label.Confidence);
 				}
 
 				// If we've seen this already, just wait for a while
 				return sleepForAWhile();
+			}
+			else if (ALT_DETECTABLE.indexOf(label.Name) !== -1) {
+				console.log(data.Labels);
+				saveFile(data.Labels);
 			}
 		}
 
