@@ -80,6 +80,28 @@ function detectSeals() {
 }
 
 /**
+  * Copies norppa.png and current labels to images-directory with timestamp
+  *
+  * @param Array  labels  Labels from AWS
+  * @return void
+  */
+function saveFile(labels) {
+	if (!fs.existsSync(IMAGENAME)) {
+		return;
+	}
+	var timestamp = moment().format('YYYY-MM-DD-HHmmss');
+
+	log('Saving image to ' + timestamp + '.png ...');
+	try {
+		fs.writeFileSync('./images/' + timestamp + '.png', fs.readFileSync(IMAGENAME));
+		fs.writeFileSync('./images/' + timestamp + '.log', JSON.stringify(labels));
+	}
+	catch (err) {
+		console.log('Error: ', err);
+	}
+}
+
+/**
  * Checks for hour limits and then takes a screenshot of the stream with ffmpeg
  * @return q.promise
  */
