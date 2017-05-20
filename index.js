@@ -33,7 +33,7 @@ var client = new Twitter(require('./twitter_config.json'));
  * @return void
  */
 function log(msg) {
-	var time = moment().format('M.D.YYYY, H:mm:ss');
+	var time = moment().format('DD.MM.YYYY, HH:mm:ss');
 	console.log('[%s] %s', time, msg);
 }
 
