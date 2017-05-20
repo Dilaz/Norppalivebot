@@ -122,7 +122,11 @@ function getStreamScreenshot() {
 
 	// Call ffmpeg to make a png image
 	return q.nfcall(exec, 'ffmpeg -i "' + STREAM + '" -f image2  -vframes 1 ' + IMAGENAME)
-	.then(detectSeals);
+	.then(detectSeals)
+	.catch(function(e) {
+		console.log(e);
+		return getStreamScreenshot();
+	});
 }
 
 /**
@@ -132,7 +136,7 @@ function getStreamScreenshot() {
  */
 function tweetNorppaIsLive(confidence) {
 	confidence = Math.round(confidence * 10) / 10;
-	var message = messages[currentMessage] + '(Varmuus: ' + confidence + '%)';
+	var message = messages[currentMessage] + ' (Varmuus: ' + confidence + '%)';
 
 	// Read the file reacted by ffmpeg
 	q.nfcall(fs.readFile, IMAGENAME)
@@ -145,7 +149,7 @@ function tweetNorppaIsLive(confidence) {
 		return client.post('statuses/update', {status: message, media_ids: media.media_id_string})
 	})
 	.then(function () {
-		log('Tweeted:', message);
+		log('Tweeted:' + message);
 		currentMessage = (currentMessage + 1) % messages.length;
 	})
 	.then(function() {
