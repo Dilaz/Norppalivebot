@@ -5,7 +5,7 @@
   "author": "Risto \"Dilaz\" Viitanen",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.49.0",
+    "aws-sdk": "^2.814.0",
     "fluent-ffmpeg": "^2.1.2",
     "moment": "^2.18.1",
     "q": "^1.5.0",
